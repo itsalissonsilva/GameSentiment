@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Steam Sentiment Result</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1020;
+      --panel: rgba(19,26,47,0.92);
+      --panel-2: #1b2542;
+      --text: #eef2ff;
+      --muted: #a7b0d6;
+      --line: rgba(255,255,255,0.08);
+      --accent: #8b5cf6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #18213f 0%, var(--bg) 45%);
+      color: var(--text);
+    }
+    .wrap {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 28px 18px 48px;
+    }
+    .top-link {
+      display: inline-block;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 18px;
+    }
+    .hero {
+      margin-bottom: 18px;
+    }
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+    }
+    .hero p {
+      margin: 0;
+      width: 100%;
+      max-width: none;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 1rem;
+    }
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--line);
+      color: #dbe3ff;
+      font-size: 0.95rem;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 22px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.22);
+    }
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 1.18rem;
+    }
+    .muted {
+      color: var(--muted);
+    }
+    .lead-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+    .chart-card img,
+    .panel img {
+      width: 100%;
+      display: block;
+      border-radius: 16px;
+      background: white;
+    }
+    .lead-panel {
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+    .lead-visual {
+      flex: 1;
+      min-height: 430px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .lead-visual img {
+      width: 100%;
+      height: 430px;
+      object-fit: contain;
+    }
+    .chart-note {
+      margin-top: 12px;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.95rem;
+    }
+    .other-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .review {
+      padding: 16px 0;
+      border-top: 1px solid var(--line);
+    }
+    .review:first-of-type {
+      border-top: none;
+      padding-top: 2px;
+    }
+    .review-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .review p {
+      margin: 0;
+      line-height: 1.65;
+      color: #ebefff;
+      white-space: pre-wrap;
+    }
+    .error {
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(120, 24, 24, 0.55);
+      border-radius: 18px;
+      padding: 18px;
+      color: #fee2e2;
+    }
+    @media (max-width: 980px) {
+      .lead-grid,
+      .other-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="top-link" href="/">← Back</a>
+
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% else %}
+      <section class="hero">
+        <h1>{{ resolved_name }}</h1>
+        {% if game_blurb %}<p>{{ game_blurb }}</p>{% endif %}
+      </section>
+
+      <div class="lead-grid">
+        <div class="panel lead-panel">
+          <h2 class="section-title">Distribution of non-zero sentiment scores</h2>
+          {% if distribution_chart %}
+            <div class="lead-visual">
+              <img src="data:image/png;base64,{{ distribution_chart }}" alt="Sentiment distribution plot">
+            </div>
+          {% else %}
+            <p class="muted">There were no non-zero sentiment scores to plot after filtering.</p>
+          {% endif %}
+        </div>
+
+        <div class="panel lead-panel">
+          <h2 class="section-title">LLM radar analysis</h2>
+          {% if radar_chart %}
+            <div class="lead-visual">
+              <img src="data:image/png;base64,{{ radar_chart }}" alt="LLM radar plot">
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="section-title">Positive word cloud</h2>
+        {% if positive_cloud %}
+          <img src="data:image/png;base64,{{ positive_cloud }}" alt="Positive word cloud">
+        {% else %}
+          <p class="muted">No positive text was available for a word cloud.</p>
+        {% endif %}
+      </div>
+
+      <div class="panel">
+        <h2 class="section-title">Negative word cloud</h2>
+        {% if negative_cloud %}
+          <img src="data:image/png;base64,{{ negative_cloud }}" alt="Negative word cloud">
+        {% else %}
+          <p class="muted">No negative text was available for a word cloud.</p>
+        {% endif %}
+      </div>
+
+      <div class="panel">
+        <h2 class="section-title">Additional charts</h2>
+        <div class="other-grid">
+          {% for label, chart in other_charts %}
+            {% if chart %}
+              <div class="chart-card">
+                <img src="data:image/png;base64,{{ chart }}" alt="{{ label }}">
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="section-title">Sample reviews</h2>
+        {% for row in sample_reviews %}
+          <div class="review">
+            <div class="review-meta">
+              <span class="pill">{{ row.created }}</span>
+              <span class="pill">Steam: {{ row.steam_recommendation }}</span>
+              <span class="pill">Text: {{ row.text_sentiment }}</span>
+              <span class="pill">Compound: {{ '%.3f'|format(row.compound) }}</span>
+              <span class="pill">Hours: {{ row.hours_at_review }} h</span>
+              <span class="pill">Helpful: {{ row.votes_up }}</span>
+            </div>
+            <p>{{ row.review }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</body>
+</html>
