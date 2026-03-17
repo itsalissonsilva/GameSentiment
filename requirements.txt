@@ -4,3 +4,5 @@ pandas
 matplotlib
 wordcloud
 nltk
+openai
+gunicorn
