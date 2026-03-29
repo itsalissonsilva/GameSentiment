@@ -14,3 +14,13 @@ run:
   command: python3 -m gunicorn app:app --bind 0.0.0.0:8080 --workers 2 --timeout 120
   network:
     port: 8080
+  env:
+    - name: LANGSMITH_TRACING
+      value: "true"
+    - name: LANGSMITH_PROJECT
+      value: "SteamGame"
+  secrets:
+    - name: OPENAI_API_KEY
+      value-from: "arn:aws:secretsmanager:us-east-1:808773667202:secret:prod/key-5vrgJf"
+    - name: LANGSMITH_API_KEY
+      value-from: "arn:aws:secretsmanager:us-east-1:808773667202:secret:prod/langsmith-s5DUhk"
