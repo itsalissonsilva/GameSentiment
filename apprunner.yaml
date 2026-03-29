@@ -21,6 +21,6 @@ run:
       value: "SteamGame"
   secrets:
     - name: OPENAI_API_KEY
-      value-from: "arn:aws:secretsmanager:us-east-1:808773667202:secret:prod/key-5vrgJf:OPENAI_API_KEY::"
+      value-from: "arn:aws:secretsmanager:us-east-1:808773667202:secret:prod/key-5vrgJf:OPEN_AI_API::"
     - name: LANGSMITH_API_KEY
       value-from: "arn:aws:secretsmanager:us-east-1:808773667202:secret:prod/langsmith-s5DUhk:LANGSMITH_API_KEY::"
