@@ -25,6 +25,11 @@ try:
 except Exception:
     OpenAI = None
 
+try:
+    from langsmith.wrappers import wrap_openai
+except Exception:
+    wrap_openai = None
+
 APP_DIR = Path(__file__).resolve().parent
 CACHE_DIR = APP_DIR / 'cache'
 CACHE_DIR.mkdir(exist_ok=True)
@@ -444,7 +449,15 @@ def get_openai_client(api_key: str | None) -> Any:
         return None
     if OpenAI is None:
         raise RuntimeError('openai package is not installed. Add it to requirements and reinstall dependencies.')
-    return OpenAI(api_key=key)
+
+    client = OpenAI(api_key=key)
+    if wrap_openai is not None:
+        try:
+            client = wrap_openai(client)
+        except Exception:
+            pass
+    return client
+
 
 
 
@@ -473,7 +486,7 @@ def build_llm_prompt(df: pd.DataFrame, resolved_name: str) -> str:
 
 
 
-def llm_radar_analysis(df: pd.DataFrame, resolved_name: str, api_key: str | None, model: str | None) -> tuple[dict[str, float], str, str]:
+def llm_radar_analysis(df: pd.DataFrame, resolved_name: str, appid: int, api_key: str | None, model: str | None) -> tuple[dict[str, float], str, str]:
     fallback_scores = heuristic_radar_scores(df)
     chosen_model = (model or '').strip() or os.environ.get('OPENAI_MODEL', '').strip() or DEFAULT_OPENAI_MODEL
     client = get_openai_client(api_key)
@@ -517,6 +530,17 @@ def llm_radar_analysis(df: pd.DataFrame, resolved_name: str, api_key: str | None
                     'schema': schema,
                     'strict': True,
                 }
+            },
+            langsmith_extra={
+                'name': 'steam-review-radar',
+                'metadata': {
+                    'steam_appid': int(appid),
+                    'game': resolved_name,
+                    'model': chosen_model,
+                    'review_count': int(len(df)),
+                    'sampled_reviews': int(min(len(df), 30)),
+                },
+                'tags': ['steam-sentiment', 'radar-analysis', chosen_model],
             },
         )
         payload = json.loads(response.output_text)
@@ -619,7 +643,7 @@ def analyze():
             return render_template('result.html', error='Steam returned no written reviews for those settings.', query=query)
 
         distribution_chart, dist_stats = make_distribution_with_gaussian(df['compound'])
-        radar_scores, radar_note, radar_model = llm_radar_analysis(df, resolved_name, api_key, openai_model)
+        radar_scores, radar_note, radar_model = llm_radar_analysis(df, resolved_name, appid, api_key, openai_model)
         radar_chart = make_radar_plot(
             radar_scores,
             'LLM sentiment radar',
