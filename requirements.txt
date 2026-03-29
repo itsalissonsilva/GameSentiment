@@ -6,4 +6,5 @@ wordcloud
 nltk
 matplotlib
 openai
+langsmith
 gunicorn
