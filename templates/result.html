@@ -37,16 +37,17 @@
       margin-bottom: 18px;
     }
     .hero h1 {
-      margin: 0 0 8px;
+      margin: 0 0 10px;
       font-size: 2rem;
+      text-align: center;
     }
-    .hero p {
-      margin: 0;
-      width: 100%;
-      max-width: none;
+    .game-blurb {
+      margin: 0 0 10px;
       color: var(--muted);
       line-height: 1.6;
       font-size: 1rem;
+      width: 100%;
+      max-width: none;
     }
     .pill-row {
       display: flex;
@@ -164,7 +165,10 @@
     {% else %}
       <section class="hero">
         <h1>{{ resolved_name }}</h1>
-        {% if game_blurb %}<p>{{ game_blurb }}</p>{% endif %}
+        <div style="height: 8px;"></div>
+        {% if game_blurb %}
+          <p class="game-blurb">{{ game_blurb }}</p>
+        {% endif %}
       </section>
 
       <div class="lead-grid">
